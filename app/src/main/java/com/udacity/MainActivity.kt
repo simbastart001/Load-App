@@ -31,10 +31,7 @@ class MainActivity : AppCompatActivity() {
 
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
-        // TODO: Implement code below
-//        binding.custom_button.setOnClickListener {
-//            download()
-//        }
+        // TODO: Implement setOnClickLister to dowdownload a file from the Internet by clicking on a custom-built button
     }
 
     private val receiver = object : BroadcastReceiver() {
