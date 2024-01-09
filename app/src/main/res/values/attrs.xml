@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!-- Declare the custom attribute for the custom button class -->
 <resources>
     <declare-styleable name="LoadingButton">
-<!--   TODO: create custom attributes for the view-->
+        <attr name="customAttribute_text" format="string" />
+        <attr name="customAttribute_rotation" format="float" />
     </declare-styleable>
 </resources>
+
