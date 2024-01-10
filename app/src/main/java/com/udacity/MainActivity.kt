@@ -11,6 +11,8 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -26,9 +28,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var notificationManager: NotificationManager
 
     private val downloadUrls = mapOf(
+        // TODO @DrStart:     Add actual URLs for these options.
         R.id.glideOption to "https://github.com/bumptech/glide",
         R.id.udacityOption to "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter",
-        R.id.retrofitOption to "https://`github.com/square/retrofit"
+        R.id.retrofitOption to "https://github.com/square/retrofit"
     )
 
     private val repositoryNames = mapOf(
@@ -65,6 +68,8 @@ class MainActivity : AppCompatActivity() {
             selectedUrl?.let { url ->
                 download(url)
                 customButton.setLoading(true)
+                // Start the download timeout check
+                startDownloadTimeout(6000, downloadID)
             } ?: Toast.makeText(
                 this,
                 getString(R.string.select_option_to_download),
@@ -82,13 +87,17 @@ class MainActivity : AppCompatActivity() {
                 val downloadStatus = getDownloadStatus(id)
                 val selectedRepositoryName = getRepositoryName()
 
-                showNotification(
-                    title = getString(R.string.notification_title),
-                    text = getString(R.string.notification_description),
-                    downloadId = id,
-                    repoName = selectedRepositoryName,
-                    status = downloadStatus
-                )
+                if (downloadStatus != getString(R.string.success)) {
+                    onDownloadFailed(id)
+                } else {
+                    showNotification(
+                        title = getString(R.string.notification_title),
+                        text = getString(R.string.notification_description),
+                        downloadId = id,
+                        repoName = selectedRepositoryName,
+                        status = downloadStatus
+                    )
+                }
             }
         }
     }
@@ -128,6 +137,27 @@ class MainActivity : AppCompatActivity() {
 
         val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
         downloadID = downloadManager.enqueue(request)
+    }
+
+    private fun startDownloadTimeout(timeout: Long, downloadId: Long) {
+        Handler(Looper.getMainLooper()).postDelayed({
+            val status = getDownloadStatus(downloadId)
+            if (status == getString(R.string.loading_text)) {
+                onDownloadFailed(downloadId)
+            }
+        }, timeout)
+    }
+
+    private fun onDownloadFailed(downloadId: Long) {
+        customButton.onDownloadFail() // Reset the button state
+        val repoName = getRepositoryName()
+        showNotification(
+            title = getString(R.string.notification_title),
+            text = getString(R.string.download_failed_text, repoName),
+            downloadId = downloadId,
+            repoName = repoName,
+            status = getString(R.string.failed)
+        )
     }
 
     // TODO @DrStart:      Method to show a notification to the user

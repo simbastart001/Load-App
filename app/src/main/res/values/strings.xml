@@ -25,4 +25,6 @@
     <string name="unknown">Unknown</string>
     <string name="error">Error</string>
     <string name="open">Open</string>
+    <string name="download_failed_text">Download of "%1$s" has failed. Please try again.</string>
+    <string name="banner_description">Banner image representing download project and app development</string>
 </resources>

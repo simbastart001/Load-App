@@ -2,11 +2,7 @@ package com.udacity
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
-import android.graphics.Typeface
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.animation.doOnEnd
@@ -41,10 +37,14 @@ class LoadingButton @JvmOverloads constructor(
     var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { _, _, new ->
         when (new) {
             ButtonState.Loading -> {
+                // TODO @DrStart:      Start the loading animation
+                valueAnimator.duration =
+                    6000 // TODO @DrStart:      Start with an arbitrary duration
                 valueAnimator.start()
             }
 
             ButtonState.Completed -> {
+                // TODO @DrStart:      Stop the loading animation
                 valueAnimator.cancel()
             }
 
@@ -53,39 +53,34 @@ class LoadingButton @JvmOverloads constructor(
     }
 
     private val valueAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-        duration = 3000
         addUpdateListener { animation ->
             progress = widthSize * animation.animatedValue as Float
             arcProgress = 360 * animation.animatedValue as Float
             invalidate()
         }
         doOnEnd {
-            buttonState = ButtonState.Completed
             progress = 0f
             arcProgress = 0f
             invalidate()
         }
-        repeatMode = ValueAnimator.RESTART
-        repeatCount = ValueAnimator.INFINITE
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        // TODO @DrStart:    Draw the button with the base color
+        // TODO @DrStart:      Draw the button with the base color
         paint.color = buttonColor
         canvas.drawRect(0f, 0f, widthSize.toFloat(), heightSize.toFloat(), paint)
 
-        // Draw the button with the loading color
-        paint.color = loadingColor
-        canvas.drawRect(0f, 0f, progress, heightSize.toFloat(), paint)
-
-        // TODO @DrStart:    Draw the text
-        paint.color = textColor
-        val buttonText = when (buttonState) {
-            ButtonState.Completed -> resources.getString(R.string.download)
-            ButtonState.Loading -> resources.getString(R.string.loading_text)
-            else -> ""
+        // TODO @DrStart:      Draw the loading portion
+        if (buttonState == ButtonState.Loading) {
+            paint.color = loadingColor
+            canvas.drawRect(0f, 0f, progress, heightSize.toFloat(), paint)
         }
+
+        // TODO @DrStart:      Draw the text
+        paint.color = textColor
+        val buttonText =
+            resources.getString(if (buttonState == ButtonState.Completed) R.string.download else R.string.loading_text)
         canvas.drawText(
             buttonText,
             widthSize / 2f,
@@ -93,17 +88,14 @@ class LoadingButton @JvmOverloads constructor(
             paint
         )
 
-
-        // TODO @DrStart:    Draw the circle
+        // TODO @DrStart:      Draw the circle
         if (buttonState == ButtonState.Loading) {
-            val left =
-                widthSize / 2f + resources.getDimension(R.dimen.default_text_size) + 60f // TODO @DrStart:   Adjust the value to position the circle further from the text
-            val top = heightSize / 2f - 15f
-            val diameter = 30f
+            val left = widthSize - 75f // TODO @DrStart:      Adjusted to place circle to the right
+            val top = (heightSize - 50f) / 2f // TODO @DrStart:      Center in the button vertically
+            val diameter = 50f
             val oval = RectF(left, top, left + diameter, top + diameter)
             canvas.drawArc(oval, 0f, arcProgress, true, circlePaint)
         }
-
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -122,9 +114,20 @@ class LoadingButton @JvmOverloads constructor(
         setMeasuredDimension(w, h)
     }
 
-    //    TODO @DrStart:   method to handle state of our customButton
     fun setLoading(isLoading: Boolean) {
         buttonState = if (isLoading) ButtonState.Loading else ButtonState.Completed
     }
-}
 
+    // TODO @DrStart:      Method to reset button state and progress on download failure
+    fun onDownloadFail() {
+        // TODO @DrStart:      Reset the button state
+        buttonState = ButtonState.Completed
+        // TODO @DrStart:      Reset the progress and arcProgress
+        progress = 0f
+        arcProgress = 0f
+        // TODO @DrStart:      Ensure the animator is reset
+        valueAnimator.cancel()
+        // TODO @DrStart:      Re-draw the button
+        invalidate()
+    }
+}

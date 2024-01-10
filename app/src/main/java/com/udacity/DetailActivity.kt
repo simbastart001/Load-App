@@ -1,6 +1,5 @@
 package com.udacity
 
-import android.app.DownloadManager.EXTRA_DOWNLOAD_ID
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -22,10 +21,7 @@ class DetailActivity : AppCompatActivity() {
 
         repositoryNameTextView = findViewById(R.id.repositoryNameTextView)
         downloadStatusTextView = findViewById(R.id.downloadStatusTextView)
-        buttonDone = findViewById(R.id.backButton)
-
-        // Retrieve download ID from Intent
-        val downloadId = intent.getLongExtra(EXTRA_DOWNLOAD_ID, -1)
+        buttonDone = findViewById(R.id.buttonDone)
 
         // TODO @DrStart:    Retrieve repository name and download status from Intent
         val repositoryName =
@@ -36,12 +32,10 @@ class DetailActivity : AppCompatActivity() {
         repositoryNameTextView.text = getString(R.string.file_name, repositoryName)
         downloadStatusTextView.text = getString(R.string.status, downloadStatus)
 
-
-
         buttonDone.setOnClickListener {
-            // TODO @DrStart:    Handle button click to go back to the main screen
             finish()
         }
+
     }
 
     companion object {
@@ -49,3 +43,4 @@ class DetailActivity : AppCompatActivity() {
         const val EXTRA_DOWNLOAD_STATUS = "EXTRA_DOWNLOAD_STATUS"
     }
 }
+
