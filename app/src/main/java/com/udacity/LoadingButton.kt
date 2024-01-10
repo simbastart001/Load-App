@@ -127,3 +127,4 @@ class LoadingButton @JvmOverloads constructor(
         buttonState = if (isLoading) ButtonState.Loading else ButtonState.Completed
     }
 }
+

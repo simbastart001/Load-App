@@ -11,7 +11,6 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -24,20 +23,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var customButton: LoadingButton
     private lateinit var downloadOptions: RadioGroup
+    private lateinit var notificationManager: NotificationManager
 
-    //    TODO @DrStart:    get exact urls for each radioButton
     private val downloadUrls = mapOf(
         R.id.glideOption to "https://github.com/bumptech/glide",
         R.id.udacityOption to "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter",
-        R.id.retrofitOption to "https://github.com/square/retrofit"
+        R.id.retrofitOption to "https://`github.com/square/retrofit"
     )
+
+    private val repositoryNames = mapOf(
+        R.id.glideOption to R.string.glide_by_bumptech,
+        R.id.udacityOption to R.string.udacity_project_starter_by_udacity,
+        R.id.retrofitOption to R.string.retrofit_by_square
+    )
+
     private var selectedUrl: String? = null
-
     private var downloadID: Long = 0
-
-    private lateinit var notificationManager: NotificationManager
-    private lateinit var pendingIntent: PendingIntent
-    private lateinit var action: NotificationCompat.Action
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,10 +46,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
 
-        customButton =
-            findViewById(R.id.custom_button)
-        downloadOptions =
-            findViewById(R.id.downloadOptions)
+        customButton = findViewById(R.id.custom_button)
+        downloadOptions = findViewById(R.id.downloadOptions)
+
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel(CHANNEL_ID)
@@ -60,30 +61,63 @@ class MainActivity : AppCompatActivity() {
             selectedUrl = downloadUrls[checkedId]
         }
 
-//        TODO @DrStart:   handle state of customButton upon onClick
         customButton.setOnClickListener {
             selectedUrl?.let { url ->
                 download(url)
                 customButton.setLoading(true)
-            } ?: Toast.makeText(this, "Please select an option to download", Toast.LENGTH_SHORT)
-                .show()
+            } ?: Toast.makeText(
+                this,
+                getString(R.string.select_option_to_download),
+                Toast.LENGTH_SHORT
+            ).show()
         }
-
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
     private val receiver = object : BroadcastReceiver() {
-        @RequiresApi(Build.VERSION_CODES.O)
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) ?: -1
             if (id == downloadID) {
                 customButton.setLoading(false)
-                showNotification("Download Complete", "The file has been downloaded", downloadID)
+
+                val downloadStatus = getDownloadStatus(id)
+                val selectedRepositoryName = getRepositoryName()
+
+                showNotification(
+                    title = getString(R.string.notification_title),
+                    text = getString(R.string.notification_description),
+                    downloadId = id,
+                    repoName = selectedRepositoryName,
+                    status = downloadStatus
+                )
             }
         }
     }
 
-    //    TODO @DrStart:   method to download specific file based on userInput from radioButtons
+    private fun getDownloadStatus(id: Long): String {
+        val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val query = DownloadManager.Query().setFilterById(id)
+        val cursor = downloadManager.query(query)
+        val downloadStatus = if (cursor.moveToFirst()) {
+            val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+            when (cursor.getInt(statusIndex)) {
+                DownloadManager.STATUS_SUCCESSFUL -> getString(R.string.success)
+                DownloadManager.STATUS_FAILED -> getString(R.string.failed)
+                else -> getString(R.string.unknown)
+            }
+        } else {
+            getString(R.string.error)
+        }
+        cursor.close()
+        return downloadStatus
+    }
+
+    private fun getRepositoryName(): String {
+        return repositoryNames[downloadOptions.checkedRadioButtonId]?.let { resId ->
+            getString(resId)
+        } ?: getString(R.string.unknown)
+    }
+
+    // TODO @DrStart:      Method to download specific file based on userInput from radioButtons
     private fun download(url: String) {
         val request = DownloadManager.Request(Uri.parse(url))
             .setTitle(getString(R.string.app_name))
@@ -96,19 +130,29 @@ class MainActivity : AppCompatActivity() {
         downloadID = downloadManager.enqueue(request)
     }
 
-    // TODO @DrStart:    Implement the logic to show a notification to the user
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun showNotification(title: String, text: String, downloadId: Long) {
-
-        // Intent to open DetailActivity
+    // TODO @DrStart:      Method to show a notification to the user
+    private fun showNotification(
+        title: String,
+        text: String,
+        downloadId: Long,
+        repoName: String,
+        status: String
+    ) {
         val detailIntent = Intent(this, DetailActivity::class.java).apply {
-            putExtra(EXTRA_DOWNLOAD_ID, downloadId) // Pass the download ID or any other data
+            putExtra(DetailActivity.EXTRA_REPOSITORY_NAME, repoName)
+            putExtra(DetailActivity.EXTRA_DOWNLOAD_STATUS, status)
         }
-        pendingIntent = PendingIntent.getActivity(
+        val pendingIntent = PendingIntent.getActivity(
             this,
-            0,
+            downloadId.toInt(),
             detailIntent,
             PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val openDetailAction = NotificationCompat.Action(
+            R.drawable.ic_assistant_black_24dp,
+            getString(R.string.open),
+            pendingIntent
         )
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -117,35 +161,32 @@ class MainActivity : AppCompatActivity() {
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
-            .setAutoCancel(true) // Dismiss notification after click
+            .addAction(openDetailAction)
+            .setAutoCancel(true)
 
         notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 
-    // TODO @DrStart:    Implement the logic to create a notification channel
+    // TODO @DrStart:      Method to create a notification channel
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel(channelId: String) {
-        // Create a NotificationChannel object with the channel ID, the channel name, and the channel importance
-        val channel =
-            NotificationChannel(channelId, "Download Channel", NotificationManager.IMPORTANCE_HIGH)
-        // Set the channel description
-        channel.setDescription("This channel is for download notifications")
-        // Get an instance of the NotificationManager class
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        // Register the notification channel
-        notificationManager.createNotificationChannel(channel)
-    }
+        val channel = NotificationChannel(
+            channelId,
+            getString(R.string.notification_channel_name),
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        channel.description = getString(R.string.notification_channel_description)
 
-    companion object {
-        private const val URL =
-            "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
-        private const val CHANNEL_ID = "channelId"
-        private const val EXTRA_DOWNLOAD_ID = "EXTRA_DOWNLOAD_ID"
-        private const val NOTIFICATION_ID = 1
+        notificationManager.createNotificationChannel(channel)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(receiver)
+    }
+
+    companion object {
+        private const val CHANNEL_ID = "channelId"
+        private const val NOTIFICATION_ID = 1
     }
 }

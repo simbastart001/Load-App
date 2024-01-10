@@ -10,8 +10,19 @@
     <string name="title_activity_detail">DetailActivity</string>
     <string name="glide_by_bumptech">Glide (by bumptech)</string>
     <string name="udacity_project_starter_by_udacity">Udacity Project Starter (by udacity)</string>
+    <string name="select_option_to_download">Please select an option to download</string>
+    <string name="notification_channel_name">Download Channel</string>
+    <string name="notification_channel_description">This channel is for download notifications</string>
     <string name="retrofit_by_square">Retrofit (by square)</string>
     <string name="download">Download</string>
     <string name="loading_text">Loading...</string>
     <string name="completed">Completed</string>
+    <string name="done">Done</string>
+    <string name="file_name">File name: %1$s</string>
+    <string name="status">Status: %1$s</string>
+    <string name="success">Success</string>
+    <string name="failed">Failed</string>
+    <string name="unknown">Unknown</string>
+    <string name="error">Error</string>
+    <string name="open">Open</string>
 </resources>
