@@ -4,26 +4,27 @@
 
     <Transition
         motion:constraintSetEnd="@+id/end"
-        motion:constraintSetStart="@+id/start">
-
-        <OnSwipe
-            motion:touchAnchorId="@+id/mainContent"
-            motion:touchAnchorSide="top" />
-
+        motion:constraintSetStart="@+id/start"
+        motion:duration="100">
+        <OnClick
+            motion:clickAction="transitionToEnd"
+            motion:targetId="@+id/buttonDone" />
     </Transition>
 
     <ConstraintSet android:id="@+id/start">
-        <!-- Define constraints for the starting state -->
-        <Constraint
-            android:id="@id/mainContent"
-            android:layout_height="300dp" />
+
     </ConstraintSet>
 
     <ConstraintSet android:id="@+id/end">
-        <!-- Define constraints for the ending state -->
         <Constraint
-            android:id="@id/mainContent"
-            android:layout_height="match_parent" />
+            android:id="@+id/reponamelayout"
+            android:alpha="0" />
+        <Constraint
+            android:id="@+id/repostatuslayout"
+            android:alpha="0" />
+        <Constraint
+            android:id="@+id/buttonDone"
+            android:alpha="0" />
     </ConstraintSet>
 
 </MotionScene>
