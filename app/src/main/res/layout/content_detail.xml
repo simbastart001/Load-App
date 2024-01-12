@@ -65,10 +65,12 @@
     <Button
         android:id="@+id/buttonDone"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:background="#FF0000FF"
+        android:layout_height="60dp"
+        android:layout_margin="10dp"
+        android:background="@color/buttonColor"
         android:text="@string/done"
+        android:textColor="@color/white"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

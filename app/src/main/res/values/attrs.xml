@@ -1,8 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Declare the custom attribute for the custom button class -->
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="LoadingButton">
-        <attr name="customAttribute_text" format="string" />
-        <attr name="customAttribute_rotation" format="float" />
+        <attr name="myBackgroundColor" format="color" />
+        <attr name="myLoadingColor" format="color" />
+        <attr name="myCirleColor" format="color" />
+        <attr name="myTextColor" format="color" />
     </declare-styleable>
 </resources>
 

@@ -1,22 +1,35 @@
 package com.udacity
 
+/**     @DrStart:   */
+
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.animation.doOnEnd
+import androidx.core.content.withStyledAttributes
 import kotlin.properties.Delegates
 
 class LoadingButton @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private var buttonColor = Color.BLUE
-    private var loadingColor = Color.GRAY
-    private var circleColor = Color.YELLOW
-    private var textColor = Color.WHITE
+    private var buttonColor = 0
+    private var loadingColor = 0
+    private var circleColor = 0
+    private var textColor = 0
 
+    init {
+        context.withStyledAttributes(attrs, R.styleable.LoadingButton) {
+            buttonColor = getColor(R.styleable.LoadingButton_myBackgroundColor, 0)
+            loadingColor = getColor(R.styleable.LoadingButton_myLoadingColor, 0)
+            circleColor = getColor(R.styleable.LoadingButton_myCirleColor, 0)
+            textColor = getColor(R.styleable.LoadingButton_myTextColor, 0)
+        }
+    }
+
+    /** colors*/
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
@@ -24,9 +37,33 @@ class LoadingButton @JvmOverloads constructor(
         typeface = Typeface.create("", Typeface.BOLD)
     }
 
-    private val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private var paintButton = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        textAlign = Paint.Align.CENTER
+        textSize = resources.getDimension(R.dimen.default_text_size)
+        typeface = Typeface.create("", Typeface.BOLD)
+        color = context.getColor(R.color.buttonColor)
+    }
+
+    private var paintLoadingButton = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        textAlign = Paint.Align.CENTER
+        textSize = resources.getDimension(R.dimen.default_text_size)
+        typeface = Typeface.create("", Typeface.BOLD)
+        color = context.getColor(R.color.loadingColor)
+    }
+
+    private var paintCircleButton = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL_AND_STROKE
-        color = circleColor
+        color = context.getColor(R.color.circleColor)
+    }
+
+    private var paintTextColor = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        textAlign = Paint.Align.CENTER
+        textSize = resources.getDimension(R.dimen.default_text_size)
+        typeface = Typeface.create("", Typeface.BOLD)
+        color = context.getColor(R.color.white)
     }
 
     private var widthSize = 0
@@ -34,25 +71,11 @@ class LoadingButton @JvmOverloads constructor(
     private var progress: Float = 0f
     private var arcProgress: Float = 0f
 
-    var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { _, _, new ->
-        when (new) {
-            ButtonState.Loading -> {
-                // TODO @DrStart:      Start the loading animation
-                valueAnimator.duration =
-                    6000 // TODO @DrStart:      Start with an arbitrary duration
-                valueAnimator.start()
-            }
-
-            ButtonState.Completed -> {
-                // TODO @DrStart:      Stop the loading animation
-                valueAnimator.cancel()
-            }
-
-            else -> Unit
-        }
-    }
-
+    /**     @DrStart:  Ensure button animation must continue while the file is downloading */
     private val valueAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+        duration = 6000
+        // Set the animator to repeat indefinitely
+        repeatCount = ValueAnimator.INFINITE
         addUpdateListener { animation ->
             progress = widthSize * animation.animatedValue as Float
             arcProgress = 360 * animation.animatedValue as Float
@@ -65,27 +88,41 @@ class LoadingButton @JvmOverloads constructor(
         }
     }
 
+    var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { _, _, new ->
+        when (new) {
+            ButtonState.Loading -> {
+                valueAnimator.start()
+            }
+
+            ButtonState.Completed -> {
+                valueAnimator.cancel()
+                progress = 0f
+                arcProgress = 0f
+            }
+
+            else -> Unit
+        }
+    }
+
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         // TODO @DrStart:      Draw the button with the base color
-        paint.color = buttonColor
-        canvas.drawRect(0f, 0f, widthSize.toFloat(), heightSize.toFloat(), paint)
+        canvas.drawRect(0f, 0f, widthSize.toFloat(), heightSize.toFloat(), paintButton)
 
         // TODO @DrStart:      Draw the loading portion
         if (buttonState == ButtonState.Loading) {
-            paint.color = loadingColor
-            canvas.drawRect(0f, 0f, progress, heightSize.toFloat(), paint)
+            canvas.drawRect(0f, 0f, progress, heightSize.toFloat(), paintLoadingButton)
         }
 
         // TODO @DrStart:      Draw the text
-        paint.color = textColor
         val buttonText =
             resources.getString(if (buttonState == ButtonState.Completed) R.string.download else R.string.loading_text)
         canvas.drawText(
             buttonText,
             widthSize / 2f,
             (heightSize / 2f) - (paint.descent() + paint.ascent()) / 2f,
-            paint
+            paintTextColor
         )
 
         // TODO @DrStart:      Draw the circle
@@ -94,7 +131,7 @@ class LoadingButton @JvmOverloads constructor(
             val top = (heightSize - 50f) / 2f // TODO @DrStart:      Center in the button vertically
             val diameter = 50f
             val oval = RectF(left, top, left + diameter, top + diameter)
-            canvas.drawArc(oval, 0f, arcProgress, true, circlePaint)
+            canvas.drawArc(oval, 0f, arcProgress, true, paintCircleButton)
         }
     }
 
@@ -118,16 +155,12 @@ class LoadingButton @JvmOverloads constructor(
         buttonState = if (isLoading) ButtonState.Loading else ButtonState.Completed
     }
 
-    // TODO @DrStart:      Method to reset button state and progress on download failure
+    /**     @DrStart:   Method to reset button state and progress on download failure */
     fun onDownloadFail() {
-        // TODO @DrStart:      Reset the button state
         buttonState = ButtonState.Completed
-        // TODO @DrStart:      Reset the progress and arcProgress
         progress = 0f
         arcProgress = 0f
-        // TODO @DrStart:      Ensure the animator is reset
         valueAnimator.cancel()
-        // TODO @DrStart:      Re-draw the button
         invalidate()
     }
 }

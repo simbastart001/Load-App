@@ -1,5 +1,8 @@
 package com.udacity
 
+/**     @DrStart:   */
+
+import android.app.NotificationManager
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -9,6 +12,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.motion.widget.MotionLayout
+import androidx.core.content.ContextCompat
 import com.udacity.databinding.ActivityDetailBinding
 
 class DetailActivity : AppCompatActivity() {
@@ -16,6 +20,7 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetailBinding
     private lateinit var repositoryNameTextView: TextView
     private lateinit var downloadStatusTextView: TextView
+    private lateinit var notificationManager: NotificationManager
     private lateinit var buttonDone: Button
     private lateinit var motionLayout: MotionLayout
 
@@ -42,6 +47,14 @@ class DetailActivity : AppCompatActivity() {
         buttonDone.setOnClickListener {
             finish()
         }
+
+        /**     @DrStart:   Cancel all notifications */
+        notificationManager = ContextCompat.getSystemService(
+            applicationContext,
+            NotificationManager::class.java
+        ) as NotificationManager
+
+        notificationManager.cancelAll()
 
     }
 

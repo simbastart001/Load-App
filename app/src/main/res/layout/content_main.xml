@@ -33,18 +33,21 @@
             android:id="@+id/glideOption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
             android:text="@string/glide_by_bumptech" />
 
         <RadioButton
             android:id="@+id/udacityOption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
             android:text="@string/udacity_project_starter_by_udacity" />
 
         <RadioButton
             android:id="@+id/retrofitOption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
             android:text="@string/retrofit_by_square" />
 
     </RadioGroup>
@@ -53,9 +56,11 @@
         android:id="@+id/custom_button"
         android:layout_width="0dp"
         android:layout_height="60dp"
-        android:layout_margin="20dp"
+        android:layout_margin="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/downloadOptions" />
+        app:layout_constraintTop_toBottomOf="@id/downloadOptions"
+        app:myBackgroundColor="@color/buttonColor" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
