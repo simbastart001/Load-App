@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                 download(url)
                 customButton.setLoading(true)
                 // Start the download timeout check
-                startDownloadTimeout(6000, downloadID)
+                startDownloadTimeout(8000, downloadID)
             } ?: Toast.makeText(
                 this,
                 getString(R.string.select_option_to_download),
@@ -172,12 +172,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startDownloadTimeout(timeout: Long, downloadId: Long) {
-        Handler(Looper.getMainLooper()).postDelayed({
-            val status = getDownloadStatus(downloadId)
-            if (status == getString(R.string.loading_text)) {
-                onDownloadFailed(downloadId)
+        val startTime = System.currentTimeMillis()
+
+        val checkStatusRunnable = object : Runnable {
+            override fun run() {
+                val elapsedTime = System.currentTimeMillis() - startTime
+                if (elapsedTime >= timeout) {
+                    val status = getDownloadStatus(downloadId)
+                    if (status != getString(R.string.success)) {
+                        onDownloadFailed(downloadId)
+                    }
+                } else {
+                    // Re-run the Runnable after a delay until the timeout is reached
+                    Handler(Looper.getMainLooper()).postDelayed(this, 1000)
+                }
             }
-        }, timeout)
+        }
+
+        // Start the repeated status check
+        Handler(Looper.getMainLooper()).postDelayed(checkStatusRunnable, 1000)
     }
 
     private fun onDownloadFailed(downloadId: Long) {
@@ -193,6 +206,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // TODO @DrStart:      Method to show a notification to the user
+
     private fun showNotification(
         title: String,
         text: String,
@@ -204,11 +218,16 @@ class MainActivity : AppCompatActivity() {
             putExtra(DetailActivity.EXTRA_REPOSITORY_NAME, repoName)
             putExtra(DetailActivity.EXTRA_DOWNLOAD_STATUS, status)
         }
+        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
         val pendingIntent = PendingIntent.getActivity(
             this,
             downloadId.toInt(),
             detailIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT
+            pendingIntentFlags
         )
 
         val openDetailAction = NotificationCompat.Action(
