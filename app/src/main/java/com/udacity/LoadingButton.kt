@@ -7,6 +7,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.LinearInterpolator
 import androidx.core.animation.doOnEnd
 import androidx.core.content.withStyledAttributes
 import kotlin.properties.Delegates
