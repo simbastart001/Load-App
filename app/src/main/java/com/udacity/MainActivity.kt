@@ -217,6 +217,7 @@ class MainActivity : AppCompatActivity() {
         val detailIntent = Intent(this, DetailActivity::class.java).apply {
             putExtra(DetailActivity.EXTRA_REPOSITORY_NAME, repoName)
             putExtra(DetailActivity.EXTRA_DOWNLOAD_STATUS, status)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
