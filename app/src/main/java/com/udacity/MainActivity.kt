@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                 download(url)
                 customButton.setLoading(true)
                 // Start the download timeout check
-                startDownloadTimeout(8000, downloadID)
+                startDownloadTimeout(12000, downloadID)
             } ?: Toast.makeText(
                 this,
                 getString(R.string.select_option_to_download),
